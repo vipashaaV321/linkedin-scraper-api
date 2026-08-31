@@ -46,11 +46,5 @@ API Endpoints
 **Capturing Experience / SDUI network payloads**
 To implement full Experience/Education parsing you will often need the SDUI/XHR payload the LinkedIn client fetches when the Experience section loads. The easiest way to gather this is via DevTools → Network → XHR/Fetch. Copy the request as cURL and the response JSON; paste them here and the parser can be updated to decode the real payload.
 
-**Troubleshooting**
-- Module import errors when running scripts directly? Use `PYTHONPATH=.` or run from the repo root so `app` can be imported.
-- HTTP 302 / 410 / 999 responses mean LinkedIn redirected or served a minimal shell (login wall or anti-bot). If you see these, either supply valid `.env` cookies (manual cookie method above) or open the same account in a browser and clear any security checkpoint.
-- `urllib3 NotOpenSSLWarning` about LibreSSL is informational and does not prevent requests from working.
-- Playwright download errors: network issues can interrupt browser downloads; re-run `python -m playwright install --with-deps` to retry.
-
 
 
