@@ -88,16 +88,3 @@ To implement full Experience/Education parsing you will often need the SDUI/XHR 
 - `urllib3 NotOpenSSLWarning` about LibreSSL is informational and does not prevent requests from working.
 - Playwright download errors: network issues can interrupt browser downloads; re-run `python -m playwright install --with-deps` to retry.
 
-**Security & Ethics**
-- Use a dedicated LinkedIn account for scraping — do not use your primary/personal account for automated requests.
-- Respect LinkedIn's Terms of Service and robots policies. This code is for educational and limited personal use; do not run high-volume scraping.
-
-**Extending the scraper**
-- The parser lives in `app` in the main project (`app/scraper.py`) — add new extraction rules there once you have a sample raw response (see SDUI capture above).
-- The `app/models.py` file in this package provides a `Profile` Pydantic model you can use for downstream APIs or tests.
-
-If you want, I can:
-- Copy the free scraper logic into this package so `linkedin_scraper_api` is fully self-contained, and add a small `setup.sh` to set up the venv and run a demo,
-- Or create a zip/tarball of this folder ready for submission.
-
-If you'd like one of those, tell me which and I will add it.
