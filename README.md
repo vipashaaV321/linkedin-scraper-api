@@ -1,24 +1,22 @@
 **LinkedIn Scraper API**
 
-This small standalone package provides two usable scrapers for LinkedIn profiles:
+This package is a self-contained public (no-login) LinkedIn profile scraper packaged as a small FastAPI service.
 
 - a lightweight public (no-login) scraper for many public profiles (fast, reliable when available), located at [free_linkedin_scraper/main.py](../free_linkedin_scraper/main.py);
 - a small packaged wrapper and data model under this folder that can reuse the free scraper or be extended to include authenticated scraping and parsing logic: see [linkedin_scraper_api/scripts/main.py](scripts/main.py) and [linkedin_scraper_api/app/models.py](app/models.py).
 
-Use this folder as a clean, self-contained submission of the public-profile scraping functionality. The instructions below explain how to set it up and run demos locally.
+What this package contains
+- `app/` — FastAPI app and scraping logic (entry: [app/main.py](app/main.py)).
+- `app/scraper.py` — public LD+JSON scraper that extracts top-card fields.
+- `app/models.py` — `Profile` Pydantic model for output shape.
+- `scripts/main.py` — demo CLI wrapper that calls the scraper.
 
-**Contents**
-- **App config & models:** [linkedin_scraper_api/app/config.py](app/config.py), [linkedin_scraper_api/app/models.py](app/models.py)
-- **Entry script:** [linkedin_scraper_api/scripts/main.py](scripts/main.py)
-- **Standalone public scraper (original):** [free_linkedin_scraper/main.py](../free_linkedin_scraper/main.py)
-- **Helpful project scripts (root):** [scripts/run_scrape_profile.py](../../scripts/run_scrape_profile.py), [scripts/linkedin_profile_free_scraper.py](../../scripts/linkedin_profile_free_scraper.py), [scripts/scrape_topcard.py](../../scripts/scrape_topcard.py)
+Key points
+- The scraper reads the LinkedIn public profile HTML and extracts the schema.org `Person` LD+JSON block when available.
+- The service exposes two endpoints: `/health` and `/scrape/{username}`.
 
-**Prerequisites**
-- Python 3.8 or newer installed locally.
-- A virtual environment for isolation (recommended).
-
-**Quick Setup (standalone folder)**
-1. From the repository root create and activate a virtualenv and install the package requirements:
+Quick local run
+1. Create and activate a virtual environment inside the `linkedin_scraper_api` folder:
 
 ```bash
 cd linkedin_scraper_api
@@ -27,57 +25,23 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-2. Run the packaged demo (uses the existing free scraper if present in the repository):
+2. Run the demo CLI (prints JSON for a vanity name):
 
 ```bash
 PYTHONPATH=. python3 linkedin_scraper_api/scripts/main.py williamhgates
 ```
 
-This prints JSON following the `Profile` model when the public schema.org `Person` block is available for the requested vanity name.
-
-**Running the original free scraper**
-If you prefer the original script that was used for quick public demos, you can run:
+3. Run the web service locally:
 
 ```bash
-cd ..
-python3 free_linkedin_scraper/main.py williamhgates
+python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
+# health: curl http://127.0.0.1:8000/health
+# scrape: curl http://127.0.0.1:8000/scrape/williamhgates
 ```
 
-**Authenticated scraping (rich results)**
-The repo includes scripts that attempt authenticated scraping (these require a valid LinkedIn session/cookies or account credentials). Two supported approaches:
-
-- Programmatic login (may hit LinkedIn security checkpoints; the project will abort on CAPTCHA/checkpoint): supply `LINKEDIN_EMAIL` and `LINKEDIN_PASSWORD` in a `.env` file and run the project runner:
-
-```bash
-# from repo root
-source .venv/bin/activate
-PYTHONPATH=. python3 scripts/run_scrape_profile.py "https://www.linkedin.com/in/<your-vanity>"
-```
-
-- Manual cookie fallback (recommended when programmatic login hits checkpoints): copy cookies from your browser DevTools into `.env`:
-
-```
-LINKEDIN_LI_AT=<li_at value>
-LINKEDIN_JSESSIONID="ajax:<token>"   # keep the surrounding quotes
-```
-
-Then re-run the same `scripts/run_scrape_profile.py` command above; the app prefers cookies from `.env` over programmatic login.
-
-**Headful/browser rendering (Playwright)**
-For pages that only render data client-side, a headful browser is the most reliable approach. A Playwright-based scraper exists at [scripts/scrape_topcard_browser.py](../../scripts/scrape_topcard_browser.py).
-
-Install Playwright and browsers (only if you plan to use the browser scraper):
-
-```bash
-pip install playwright
-python -m playwright install --with-deps
-```
-
-Run the browser scraper (it reads `.env` for cookies if present):
-
-```bash
-python3 scripts/scrape_topcard_browser.py "https://www.linkedin.com/in/<vanity>"
-```
+API Endpoints
+- `GET /health` — returns `{ "status": "ok" }`.
+- `GET /scrape/{username}` — returns the `Profile` JSON when available, otherwise returns a diagnostic error.
 
 **Capturing Experience / SDUI network payloads**
 To implement full Experience/Education parsing you will often need the SDUI/XHR payload the LinkedIn client fetches when the Experience section loads. The easiest way to gather this is via DevTools → Network → XHR/Fetch. Copy the request as cURL and the response JSON; paste them here and the parser can be updated to decode the real payload.
@@ -87,4 +51,6 @@ To implement full Experience/Education parsing you will often need the SDUI/XHR 
 - HTTP 302 / 410 / 999 responses mean LinkedIn redirected or served a minimal shell (login wall or anti-bot). If you see these, either supply valid `.env` cookies (manual cookie method above) or open the same account in a browser and clear any security checkpoint.
 - `urllib3 NotOpenSSLWarning` about LibreSSL is informational and does not prevent requests from working.
 - Playwright download errors: network issues can interrupt browser downloads; re-run `python -m playwright install --with-deps` to retry.
+
+
 
